@@ -3,11 +3,13 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Product;
+use AppBundle\Exception\ResourceValidationException;
 use AppBundle\Representation\Products;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Request\ParamFetcherInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use FOS\RestBundle\Controller\FOSRestController;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 
 /**
@@ -75,7 +77,7 @@ class ProductsController extends FOSRestController
      * @Rest\View(StatusCode = 201)
      * @ParamConverter("product", converter="fos_rest.request_body")
      */
-    public function createAction(Product $product)
+    public function createAction(Product $product, ConstraintViolationList $violations)
     {
         if (count($violations)) {
             $message = 'The JSON sent contains invalid data. Here are the errors you need to correct: ';
@@ -103,7 +105,7 @@ class ProductsController extends FOSRestController
      * )
      * @ParamConverter("newProduct", converter="fos_rest.request_body")
      */
-    public function updateAction(Product $product, Product $newProduct)
+    public function updateAction(Product $product, Product $newProduct, ConstraintViolationList $violations)
     {
         if (count($violations)) {
             $message = 'The JSON sent contains invalid data. Here are the errors you need to correct: ';

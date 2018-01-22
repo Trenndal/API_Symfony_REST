@@ -3,11 +3,13 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\User;
+use AppBundle\Exception\ResourceValidationException;
 use AppBundle\Representation\Users;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Request\ParamFetcherInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use FOS\RestBundle\Controller\FOSRestController;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 
 /**
@@ -74,7 +76,7 @@ class UsersController extends FOSRestController
      * @Rest\View(StatusCode = 201)
      * @ParamConverter("user", converter="fos_rest.request_body")
      */
-    public function createAction(User $user)
+    public function createAction(User $user, ConstraintViolationList $violations)
     {
         if (count($violations)) {
             $message = 'The JSON sent contains invalid data. Here are the errors you need to correct: ';
@@ -102,7 +104,7 @@ class UsersController extends FOSRestController
      * )
      * @ParamConverter("newUser", converter="fos_rest.request_body")
      */
-    public function updateAction(User $user, User $newuser )
+    public function updateAction(User $user, User $newuser, ConstraintViolationList $violations)
     {
         if (count($violations)) {
             $message = 'The JSON sent contains invalid data. Here are the errors you need to correct: ';
