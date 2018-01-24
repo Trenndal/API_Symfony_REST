@@ -54,6 +54,23 @@ fos_rest:
         messages:
            'AppBundle\Exception\ResourceValidationException': true
 
+fos_user:
+    db_driver: orm
+    firewall_name: main
+    user_class: OauthBundle\Entity\User
+    from_email:
+        address: "%mailer_user%"
+        sender_name: "%mailer_user%"
+
+fos_oauth_server:
+    db_driver: orm
+    client_class:        OauthBundle\Entity\Client
+    access_token_class:  OauthBundle\Entity\AccessToken
+    refresh_token_class: OauthBundle\Entity\RefreshToken
+    auth_code_class:     OauthBundle\Entity\AuthCode
+    service:
+        user_provider: fos_user.user_provider.username
+
 # Twig Configuration
 twig:
     debug: '%kernel.debug%'
