@@ -1,3 +1,3 @@
-API REST V0.2-dev
+API REST V0.2
 Symfony Standard Edition
 ========================
