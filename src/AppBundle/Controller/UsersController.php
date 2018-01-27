@@ -10,10 +10,12 @@ use FOS\RestBundle\Request\ParamFetcherInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use FOS\RestBundle\Controller\FOSRestController;
 use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\HttpFoundation\Response;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 
 
 /**
- * 
+ * @Cache(expires="tomorrow", public=true)
  */
 class UsersController extends FOSRestController
 {
@@ -65,6 +67,7 @@ class UsersController extends FOSRestController
      * )
      * @Rest\View
      * 
+     * @Cache(lastModified="user.getUpdatedAt()")
      */
     public function showAction(User $user)
     {
