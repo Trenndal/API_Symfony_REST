@@ -48,15 +48,17 @@ class UsersController extends FOSRestController
      *     description="The pagination offset"
      * )
      * @Rest\View(StatusCode = 200)
+     * 
      */
     public function listAction(ParamFetcherInterface $paramFetcher)
     {
         $client=$this->get('security.token_storage')->getToken()->getUser();
 
-		$requestTime=Request::createFromGlobals()->headers->get('Last-Modified');
+		
+		$requestTime=new \DateTime(Request::createFromGlobals()->headers->get('Last-Modified'));
 		$dbTime=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->getUpdatedAt();
 		if($requestTime==$dbTime){
-			return new Response($requestTime,Response::HTTP_OK);
+			return new Response("",Response::HTTP_NOT_MODIFIED);
 		}
 
         $pager = $this->getDoctrine()->getRepository('AppBundle:User')->search(
@@ -85,6 +87,11 @@ class UsersController extends FOSRestController
 		if($this->get('security.token_storage')->getToken()->getUser()!=$user->getClient()){
 			throw $this->createAccessDeniedException('You cannot access this user !');
 		}
+		$requestTime=new \DateTime(Request::createFromGlobals()->headers->get('Last-Modified'));
+		$dbTime=$user->getUpdatedAt();
+		if($requestTime==$dbTime){
+			return new Response("",Response::HTTP_NOT_MODIFIED);
+		}
 		
         return $user;
     }
@@ -109,6 +116,8 @@ class UsersController extends FOSRestController
 		$user->setClient($this->get('security.token_storage')->getToken()->getUser());
 
         $em->persist($user);
+		$updateAt=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->setUpdatedAt($user->getUpdatedAt());
+        $em->persist($updateAt);
         $em->flush();
 
         return $user;
@@ -145,6 +154,9 @@ class UsersController extends FOSRestController
         $user->setPassword($newuser->getPassword());
         $user->setUpdateAt(new \DateTime());
         $user->setClient($this->get('security.token_storage')->getToken()->getUser());
+		
+		$updateAt=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->setUpdatedAt($user->getUpdatedAt());
+        $em->persist($updateAt);
 
         $em->flush();
 
@@ -165,6 +177,8 @@ class UsersController extends FOSRestController
 			throw $this->createAccessDeniedException('You cannot delete this user !');
 		}
         $em=$this->getDoctrine()->getManager();
+		$updateAt=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->setUpdatedAt($user->getUpdatedAt());
+        $em->persist($updateAt);
         $em->remove($user);
         $em->flush();
 

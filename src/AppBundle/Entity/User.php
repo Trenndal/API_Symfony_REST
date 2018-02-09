@@ -8,6 +8,7 @@ use JMS\Serializer\Annotation\ExclusionPolicy;
 use JMS\Serializer\Annotation\Expose;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use AppBundle\Entity\UpdateAt;
 
 /**
  * @ORM\Entity(repositoryClass="AppBundle\Repository\UserRepository")
