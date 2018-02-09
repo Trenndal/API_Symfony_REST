@@ -45,10 +45,16 @@ class ProductsController extends FOSRestController
      *     default="0",
      *     description="The pagination offset"
      * )
-     * @Rest\View()
+     * @Rest\View(StatusCode = 200)
      */
     public function listAction(ParamFetcherInterface $paramFetcher)
     {
+
+		$requestTime=Request::createFromGlobals()->headers->get('Last-Modified');
+		$dbTime=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("product")->getUpdatedAt();
+		if($requestTime==$dbTime){
+			return new Response($requestTime,Response::HTTP_OK);
+		}
         $pager = $this->getDoctrine()->getRepository('AppBundle:Product')->search(
             $paramFetcher->get('keyword'),
             $paramFetcher->get('order'),
@@ -65,7 +71,7 @@ class ProductsController extends FOSRestController
      *     name = "app_product_show",
      *     requirements = {"id"="\d+"}
      * )
-     * @Rest\View
+     * @Rest\View(StatusCode = 200)
      * 
      * @Cache(lastModified="product.getUpdatedAt()")
      */
@@ -130,7 +136,7 @@ class ProductsController extends FOSRestController
     }
 
     /**
-     * @Rest\View(StatusCode = 200)
+     * @Rest\View(StatusCode = 204)
      * @Rest\Delete(
      *     path = "/api/products/{id}",
      *     name = "app_product_delete",
