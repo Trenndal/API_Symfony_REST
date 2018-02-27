@@ -14,6 +14,7 @@ use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\HttpFoundation\Response;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 
 /**
@@ -49,19 +50,23 @@ class UsersController extends FOSRestController
      * )
      * @Rest\View(StatusCode = 200)
      * 
+     * @param ParamFetcherInterface $paramFetcher
+     * @param Request $request
+     * @return Response
      */
-    public function listAction(ParamFetcherInterface $paramFetcher)
+    public function listAction(ParamFetcherInterface $paramFetcher, Request $request)
     {
         $client=$this->get('security.token_storage')->getToken()->getUser();
 
 		
-		$requestTime=new \DateTime(Request::createFromGlobals()->headers->get('Last-Modified'));
-		$dbTime=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->getUpdatedAt();
+		$em=$this->getDoctrine()->getManager();
+		$requestTime=new \DateTime($request->headers->get('Last-Modified'));
+		$dbTime=$em->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->getUpdatedAt();
 		if($requestTime==$dbTime){
 			return new Response("",Response::HTTP_NOT_MODIFIED);
 		}
 
-        $pager = $this->getDoctrine()->getRepository('AppBundle:User')->search(
+        $pager = $em->getRepository('AppBundle:User')->search(
             (string)$client,
             $paramFetcher->get('keyword'),
             $paramFetcher->get('order'),
@@ -69,7 +74,7 @@ class UsersController extends FOSRestController
             $paramFetcher->get('offset')
         );
 
-        return new Users($pager);
+        return $this->handleView($this->view(new Users($pager), 200)->setHeader('Last-Modified',$dbTime->format('D, d M Y H:i:s')." GMT"));
     }
 
     /**
@@ -81,13 +86,18 @@ class UsersController extends FOSRestController
      * @Rest\View(StatusCode = 200)
      * 
      * @Cache(lastModified="user.getUpdatedAt()")
+     * 
+     * @param User $user
+     * @param Request $request
+     * @return Response
+     * @throws \AccessDeniedException
      */
-    public function showAction(User $user)
+    public function showAction(User $user, Request $request)
     {
 		if($this->get('security.token_storage')->getToken()->getUser()!=$user->getClient()){
 			throw $this->createAccessDeniedException('You cannot access this user !');
 		}
-		$requestTime=new \DateTime(Request::createFromGlobals()->headers->get('Last-Modified'));
+		$requestTime=new \DateTime($request->headers->get('Last-Modified'));
 		$dbTime=$user->getUpdatedAt();
 		if($requestTime==$dbTime){
 			return new Response("",Response::HTTP_NOT_MODIFIED);
@@ -100,6 +110,11 @@ class UsersController extends FOSRestController
      * @Rest\Post("/api/users")
      * @Rest\View(StatusCode = 201)
      * @ParamConverter("user", converter="fos_rest.request_body")
+     * 
+     * @param User $user
+     * @param ConstraintViolationList $violations
+     * @return Response
+     * @throws \ResourceValidationException
      */
     public function createAction(User $user, ConstraintViolationList $violations)
     {
@@ -116,11 +131,11 @@ class UsersController extends FOSRestController
 		$user->setClient($this->get('security.token_storage')->getToken()->getUser());
 
         $em->persist($user);
-		$updateAt=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->setUpdatedAt($user->getUpdatedAt());
+		$updateAt=$em->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->setUpdatedAt($user->getUpdatedAt());
         $em->persist($updateAt);
         $em->flush();
 
-        return $user;
+        return $this->handleView($this->view($user, 201)->setLocation($this->get('router')->generate('app_user_show',array('id' => $user->getId()), UrlGeneratorInterface::ABSOLUTE_URL)));
     }
 
     /**
@@ -131,8 +146,15 @@ class UsersController extends FOSRestController
      *     requirements = {"id"="\d+"}
      * )
      * @ParamConverter("newUser", converter="fos_rest.request_body")
+     * 
+     * @param User $user
+     * @param User $newUser
+     * @param ConstraintViolationList $violations
+     * @return Response
+     * @throws \AccessDeniedException
+     * @throws \ResourceValidationException
      */
-    public function updateAction(User $user, User $newuser, ConstraintViolationList $violations)
+    public function updateAction(User $user, User $newUser, ConstraintViolationList $violations)
     {
 		if($this->get('security.token_storage')->getToken()->getUser()!=$user->getClient()){
 			throw $this->createAccessDeniedException('You cannot update this user !');
@@ -148,14 +170,14 @@ class UsersController extends FOSRestController
         }
 
         $em=$this->getDoctrine()->getManager();
-        $user->setName($newuser->getName());
-        $user->setFirstName($newuser->getFirstName());
-        $user->setEmail($newuser->getEmail());
-        $user->setPassword($newuser->getPassword());
-        $user->setUpdateAt(new \DateTime());
+        $user->setName($newUser->getName());
+        $user->setFirstName($newUser->getFirstName());
+        $user->setEmail($newUser->getEmail());
+        $user->setPassword($newUser->getPassword());
+        $user->setUpdatedAt(new \DateTime());
         $user->setClient($this->get('security.token_storage')->getToken()->getUser());
 		
-		$updateAt=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->setUpdatedAt($user->getUpdatedAt());
+		$updateAt=$em->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->setUpdatedAt($user->getUpdatedAt());
         $em->persist($updateAt);
 
         $em->flush();
@@ -170,6 +192,10 @@ class UsersController extends FOSRestController
      *     name = "app_user_delete",
      *     requirements = {"id"="\d+"}
      * )
+     * 
+     * @param User $user
+     * @return Response
+     * @throws \AccessDeniedException
      */
     public function deleteAction(User $user)
     {
@@ -177,7 +203,7 @@ class UsersController extends FOSRestController
 			throw $this->createAccessDeniedException('You cannot delete this user !');
 		}
         $em=$this->getDoctrine()->getManager();
-		$updateAt=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->setUpdatedAt($user->getUpdatedAt());
+		$updateAt=$em->getRepository('AppBundle:UpdateAt')->findOneByTable("user")->setUpdatedAt($user->getUpdatedAt());
         $em->persist($updateAt);
         $em->remove($user);
         $em->flush();

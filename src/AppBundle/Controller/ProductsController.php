@@ -48,16 +48,21 @@ class ProductsController extends FOSRestController
      *     description="The pagination offset"
      * )
      * @Rest\View(StatusCode = 200)
+     * 
+     * @param ParamFetcherInterface $paramFetcher
+     * @param Request $request
+     * @return Response
      */
-    public function listAction(ParamFetcherInterface $paramFetcher)
+    public function listAction(ParamFetcherInterface $paramFetcher, Request $request)
     {
 
-		$requestTime=new \DateTime(Request::createFromGlobals()->headers->get('Last-Modified'));
-		$dbTime=$this->getDoctrine()->getManager()->getRepository('AppBundle:UpdateAt')->findOneByTable("product")->getUpdatedAt();
+		$em=$this->getDoctrine()->getManager();
+		$requestTime=new \DateTime($request->headers->get('Last-Modified'));
+		$dbTime=$em->getRepository('AppBundle:UpdateAt')->findOneByTable("product")->getUpdatedAt();
 		if($requestTime==$dbTime){
 			return new Response("",Response::HTTP_NOT_MODIFIED);
 		}
-        $pager = $this->getDoctrine()->getRepository('AppBundle:Product')->search(
+        $pager = $em->getRepository('AppBundle:Product')->search(
             $paramFetcher->get('keyword'),
             $paramFetcher->get('order'),
             $paramFetcher->get('limit'),
@@ -76,10 +81,14 @@ class ProductsController extends FOSRestController
      * @Rest\View(StatusCode = 200)
      * 
      * @Cache(lastModified="product.getUpdatedAt()")
+     * 
+     * @param Product $product
+     * @param Request $request
+     * @return Response
      */
-    public function showAction(Product $product)
+    public function showAction(Product $product, Request $request)
     {
-		$requestTime=new \DateTime(Request::createFromGlobals()->headers->get('Last-Modified'));
+		$requestTime=new \DateTime($request->headers->get('Last-Modified'));
 		$dbTime=$product->getUpdatedAt();
 		if($requestTime==$dbTime){
 			return new Response("",Response::HTTP_NOT_MODIFIED);

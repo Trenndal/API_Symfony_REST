@@ -86,16 +86,33 @@ class Product
         $this->updatedAt = new \DateTime();
     }
 
+    /**
+     * Get id
+     * 
+     * @return Integer
+     */
     public function getId()
     {
         return $this->id;
     }
 
+    /**
+     * Get name
+     * 
+     * @return String
+     */
     public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * Set name
+     * 
+     * @param String $name
+     * 
+     * @return Product
+     */
     public function setName($name)
     {
         $this->name = $name;
@@ -103,11 +120,23 @@ class Product
         return $this;
     }
 
+    /**
+     * Get updatedAt
+     * 
+     * @return DateTime
+     */
     public function getUpdatedAt()
     {
         return $this->updatedAt;
     }
 
+    /**
+     * Set updatedAt
+     * 
+     * @param DateTime $updatedAt
+     * 
+     * @return Product
+     */
     public function setUpdatedAt($updatedAt)
     {
         $this->updatedAt = $updatedAt;
@@ -115,11 +144,23 @@ class Product
         return $this;
     }
 
+    /**
+     * Get content
+     * 
+     * @return Text
+     */
     public function getContent()
     {
         return $this->content;
     }
 
+    /**
+     * Set content
+     * 
+     * @param Text $content
+     * 
+     * @return Product
+     */
     public function setContent($content)
     {
         $this->content = $content;
@@ -127,11 +168,23 @@ class Product
         return $this;
     }
 
+    /**
+     * Get price
+     * 
+     * @return String
+     */
     public function getPrice()
     {
         return $this->price;
     }
 
+    /**
+     * Set price
+     * 
+     * @param String $price
+     * 
+     * @return Product
+     */
     public function setPrice($price)
     {
         $this->price = $price;
@@ -149,9 +202,9 @@ class Product
 
     /**
      * Add image
-     *
+     * 
      * @param \AppBundle\Entity\Image $image
-     *
+     * 
      * @return Product
      */
     public function addImage(\AppBundle\Entity\Image $image)

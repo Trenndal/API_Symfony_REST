@@ -117,16 +117,33 @@ class User
     }
 
 
+    /**
+     * Get id
+     *
+     * @return Integer
+     */
     public function getId()
     {
         return $this->id;
     }
 
+    /**
+     * Get name
+     *
+     * @return String
+     */
     public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * Set name
+     *
+     * @param String $name
+     *
+     * @return User
+     */
     public function setName($name)
     {
         $this->name = $name;
@@ -134,11 +151,23 @@ class User
         return $this;
     }
 
+    /**
+     * Get updateAt
+     *
+     * @return DateTime
+     */
     public function getUpdatedAt()
     {
         return $this->updatedAt;
     }
 
+    /**
+     * Set updateAt
+     *
+     * @param DateTime $updateAt
+     *
+     * @return User
+     */
     public function setUpdatedAt($updatedAt)
     {
         $this->updatedAt = $updatedAt;
