@@ -59,8 +59,8 @@ fos_user:
     firewall_name: main
     user_class: OauthBundle\Entity\User
     from_email:
-        address: "%mailer_user%"
-        sender_name: "%mailer_user%"
+        address: "mailer@user.com"
+        sender_name: "mailer_user"
 
 fos_oauth_server:
     db_driver: orm
